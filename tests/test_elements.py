@@ -1,9 +1,13 @@
+import random
+import pytest
 from time import sleep
 from pages.elements_page import TextBoxPage
 from pages.elements_page import RadioButtonPage
+from pages.elements_page import WebTablesPage
 
 
 class TestTextBox:
+
     def test_text_box(self, text_box_page):
         text_box_page.open_page()
         name, email, current_address, permanent_address = text_box_page.fill_all_fields_and_submit()
@@ -15,6 +19,7 @@ class TestTextBox:
 
 
 class TestCheckBox:
+
     def test_check_box(self, check_box_page):
         check_box_page.open_page()
         check_box_page.expand_all()
@@ -25,6 +30,7 @@ class TestCheckBox:
 
 
 class TestRadioButton:
+
     def test_radio_button(self, radio_button_page):
         choice1, choice2, choice3 = 'Yes', 'Impressive', 'No'
         radio_button_page.open_page()
@@ -37,5 +43,29 @@ class TestRadioButton:
         assert output_1 == choice1, f'"{choice1}" has not been selected or choice and output text does not match'
         assert output_2 == choice2, f'"{choice2}" has not been selected or choice and output text does not match'
         assert output_3 == choice3, f'"{choice3}" has not been selected or choice and output text does not match'
+
+
+class TestWebTables:
+
+    def test_web_table_add_person(self, web_tables_page):
+        web_tables_page.open_page()
+        web_tables_page.add_person()
+        sleep(5)
+
+    def test_web_table_check_new_person(self, web_tables_page):
+        web_tables_page.open_page()
+        new_person = web_tables_page.add_person()
+        result = web_tables_page.check_new_person()
+        assert new_person in result, "new person not found in the table"
+
+
+    def test_web_table_search_person(self, web_tables_page):
+        web_tables_page.open_page()
+        key_word = web_tables_page.add_person()[random.randint(0,5)]
+        web_tables_page.search_person(key_word)
+        result = web_tables_page.check_search_person()
+        print(key_word)
+        print(result)
+        assert key_word in result, "the person was not found in the table"
 
 
