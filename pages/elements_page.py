@@ -3,6 +3,7 @@ from pages.base_page import BasePage
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 import random
+import allure
 
 
 class TextBoxPage(BasePage):
@@ -22,6 +23,7 @@ class TextBoxPage(BasePage):
     OUTPUT_CURRENT_ADDRESS = (By.CSS_SELECTOR, '#output #currentAddress')
     OUTPUT_PERMANENT_ADDRESS = (By.CSS_SELECTOR, '#output #permanentAddress')
 
+    @allure.step('fill in all fields')
     def fill_all_fields_and_submit(self):
         """Заполняем поля формы рандомными данными, сгенерированными библиотекой Faker"""
         person_info = next(generated_person())
@@ -29,15 +31,17 @@ class TextBoxPage(BasePage):
         email = person_info.email
         current_address = person_info.current_address
         permanent_address = person_info.permanent_address
-
-        self.wait.until(EC.visibility_of_element_located(self.FULL_NAME)).send_keys(name)
-        self.wait.until(EC.visibility_of_element_located(self.EMAIL)).send_keys(email)
-        self.wait.until(EC.visibility_of_element_located(self.CURRENT_ADDRESS)).send_keys(current_address)
-        self.wait.until(EC.visibility_of_element_located(self.PERMANENT_ADDRESS)).send_keys(permanent_address)
-        self.remove_fixedban()
-        self.wait.until(EC.visibility_of_element_located(self.SUBMIT)).click()
+        with allure.step('fields filling'):
+            self.wait.until(EC.visibility_of_element_located(self.FULL_NAME)).send_keys(name)
+            self.wait.until(EC.visibility_of_element_located(self.EMAIL)).send_keys(email)
+            self.wait.until(EC.visibility_of_element_located(self.CURRENT_ADDRESS)).send_keys(current_address)
+            self.wait.until(EC.visibility_of_element_located(self.PERMANENT_ADDRESS)).send_keys(permanent_address)
+            self.remove_fixedban()
+        with allure.step('click submit button'):
+            self.wait.until(EC.visibility_of_element_located(self.SUBMIT)).click()
         return name, email, current_address, permanent_address
 
+    @allure.step('check filled form')
     def check_filled_output_form(self):
         """Проверяем, что на нижней форме значения полей соответствуют введённым в верхней"""
         name = self.wait.until(EC.presence_of_element_located(self.OUTPUT_NAME)).text.split(':')[1]
@@ -60,10 +64,12 @@ class CheckBoxPage(BasePage):
     ITEM_TITLE_XPATH = ".//ancestor::span[@class='rct-text']"
     OUTPUT_LIST = (By.CSS_SELECTOR, "span[class='text-success']")
 
+    @allure.step('open the list')
     def expand_all(self):
         """Раскрываем список полностью"""
         self.wait.until(EC.visibility_of_element_located(self.EXPAND_ALL_BUTTON)).click()
 
+    @allure.step('click random checkbox')
     def click_random_checkbox(self):
         """Выбираем несколько рандомных чекбоксов"""
         item_lst = self.wait.until(EC.visibility_of_all_elements_located(self.ITEM_LIST))
@@ -74,6 +80,7 @@ class CheckBoxPage(BasePage):
             item.click()
             count -= 1
 
+    @allure.step('get checked checkboxes')
     def get_titles_of_checked_checkboxes(self):
         """Получаем заголовки кликнутых чекбосков"""
         checked_item_lst = self.wait.until(EC.presence_of_all_elements_located(self.CHECKED_ITEM_LIST))
@@ -83,6 +90,7 @@ class CheckBoxPage(BasePage):
             data.append(title.text.lower())
         return str(data).replace(' ', '').replace('.doc', '').lower()
 
+    @allure.step('get output list')
     def get_output_list(self):
         """Получаем список, который отображается в 'You have selected' """
         output_list = self.wait.until(EC.presence_of_all_elements_located(self.OUTPUT_LIST))
@@ -101,6 +109,7 @@ class RadioButtonPage(BasePage):
     NO_RADIO = (By.CSS_SELECTOR, "label[class^='custom-control-label'][for='noRadio']")
     OUTPUT_RESULT = (By.CSS_SELECTOR, "span[class='text-success']")
 
+    @allure.step('click radiobutton')
     def click_radio_button(self, choice):
         """Кликаем на выбранный radiobutton"""
         choices = {'Yes': self.YES_RADIO,
@@ -109,6 +118,7 @@ class RadioButtonPage(BasePage):
         self.remove_footer()
         self.wait.until(EC.visibility_of_element_located(choices[choice])).click()
 
+    @allure.step('get output result')
     def get_output_result(self):
         """Получаем значение из строки 'You have selected...'"""
         return self.wait.until(EC.presence_of_element_located(self.OUTPUT_RESULT)).text
@@ -134,6 +144,7 @@ class WebTablesPage(BasePage):
     DELETE_BUTTON = (By.CSS_SELECTOR, "span[title='Delete']")
     ROW_PARENT_XPATH = ".//ancestor::div[@class='rt-tr-group']"
 
+    @allure.step('add person to the table')
     def add_person(self, count=1):
         while count != 0:
             person_info = next(generated_person())
@@ -143,17 +154,21 @@ class WebTablesPage(BasePage):
             age = person_info.age
             salary = person_info.salary
             department = person_info.department
-            self.wait.until(EC.visibility_of_element_located(self.ADD_BUTTON)).click()
-            self.wait.until(EC.visibility_of_element_located(self.FIRST_NAME)).send_keys(first_name)
-            self.wait.until(EC.visibility_of_element_located(self.LAST_NAME)).send_keys(last_name)
-            self.wait.until(EC.visibility_of_element_located(self.EMAIL)).send_keys(email)
-            self.wait.until(EC.visibility_of_element_located(self.AGE)).send_keys(age)
-            self.wait.until(EC.visibility_of_element_located(self.SALARY)).send_keys(salary)
-            self.wait.until(EC.visibility_of_element_located(self.DEPARTMENT)).send_keys(department)
-            self.wait.until(EC.visibility_of_element_located(self.SUBMIT_BUTTON)).click()
+            with allure.step('click add button'):
+                self.wait.until(EC.visibility_of_element_located(self.ADD_BUTTON)).click()
+            with allure.step('fill all fields'):
+                self.wait.until(EC.visibility_of_element_located(self.FIRST_NAME)).send_keys(first_name)
+                self.wait.until(EC.visibility_of_element_located(self.LAST_NAME)).send_keys(last_name)
+                self.wait.until(EC.visibility_of_element_located(self.EMAIL)).send_keys(email)
+                self.wait.until(EC.visibility_of_element_located(self.AGE)).send_keys(age)
+                self.wait.until(EC.visibility_of_element_located(self.SALARY)).send_keys(salary)
+                self.wait.until(EC.visibility_of_element_located(self.DEPARTMENT)).send_keys(department)
+            with allure.step('click submit button'):
+                self.wait.until(EC.visibility_of_element_located(self.SUBMIT_BUTTON)).click()
             count -= 1
             return [first_name, last_name, str(age), email, str(salary), department]
 
+    @allure.step('check created person')
     def check_new_person(self):
         table_list = self.wait.until(EC.presence_of_all_elements_located(self.TABLE_LIST))
         data = []
@@ -161,9 +176,11 @@ class WebTablesPage(BasePage):
             data.append(item.text.splitlines())
         return data
 
+    @allure.step('search created  person')
     def search_person(self, key_word):
         self.wait.until(EC.visibility_of_element_located(self.SEARCH_INPUT)).send_keys(key_word)
 
+    @allure.step('check found person')
     def check_search_person(self):
         delete_button = self.wait.until(EC.presence_of_element_located(self.DELETE_BUTTON))
         row = delete_button.find_element(By.XPATH, self.ROW_PARENT_XPATH)
